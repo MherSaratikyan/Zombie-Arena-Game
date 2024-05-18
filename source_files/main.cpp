@@ -5,6 +5,7 @@
 #include "../header_files/Arena.hpp"
 #include "../header_files/TextureManager.hpp"
 #include "../header_files/Bullet.hpp"
+#include "../header_files/Pickup.hpp"
 
 
 int main(){
@@ -58,6 +59,10 @@ int main(){
     sf::Texture crosshair_texture = TextureManager::get_texture("../resource_files/graphics/crosshair.png");
     crosshair_sprite.setTexture(crosshair_texture);
     crosshair_sprite.setOrigin(25,25);
+
+    //Creating pickups
+    Pickup health_pickup(1);
+    Pickup ammo_pickup(2);
 
 
     while(window.isOpen()){
@@ -154,6 +159,9 @@ int main(){
 
                     player.spawn(arena,resolution,tile_size);
 
+                    health_pickup.set_arena(arena);
+                    ammo_pickup.set_arena(arena);
+
                     num_zombies = 200;
                     for(int z{0}; z < zombie_horde.size();++z){
                         delete zombie_horde[z];
@@ -216,7 +224,12 @@ int main(){
                     bullets[b].update(dt.asSeconds());
                 }
             }
+
+            health_pickup.update(dt.asSeconds());
+            ammo_pickup.update(dt.asSeconds());
         }
+
+        
 
         //draw the scene
         if(curr_state == State::PLAYING){
@@ -238,6 +251,15 @@ int main(){
 
 
             window.draw(player.get_sprite());
+
+            if(health_pickup.is_spawned()){
+                window.draw(health_pickup.get_sprite());
+            }
+
+            if(ammo_pickup.is_spawned()){
+                window.draw(ammo_pickup.get_sprite());
+            }
+            
             window.draw(crosshair_sprite);
         }
 
