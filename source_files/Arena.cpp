@@ -3,7 +3,6 @@
 #include "../header_files/Crawler.hpp"
 #include "../header_files/Chaser.hpp"
 #include "../header_files/Bloater.hpp"
-#include "../header_files/Praetorian.hpp"
 
 #include <vector>
 #include <ctime>
@@ -95,7 +94,7 @@ std::vector<Zombie*> create_horde(int num_zombies,sf::IntRect arena){
 
         //Bloater, Chaser or Crawler
         std::srand(std::time(0) * i * 2);
-        int type = rand() % 4;
+        int type = rand() % 3;
 
         switch(type){
             case 0:
@@ -110,9 +109,6 @@ std::vector<Zombie*> create_horde(int num_zombies,sf::IntRect arena){
                 //Bloater
                 horde.push_back(new Bloater);
                 break; 
-            case 3:
-                horde.push_back(new Praetorian);
-                break;
         }
 
         horde[i]->spawn(x,y,i);

@@ -36,10 +36,8 @@ int main(){
     sf::IntRect arena;
 
     sf::VertexArray background;
-    sf::Texture background_texture;
-    background_texture.loadFromFile("../resource_files/graphics/background_sheet.png");
-
-
+    sf::Texture background_texture = TextureManager::get_texture("../resource_files/graphics/background_sheet.png");
+    
     //Prepare the horde
     int num_zombies;
     int num_zombies_alive;
@@ -109,8 +107,8 @@ int main(){
                 }
 
                 if(curr_state == State::PLAYING){
-                    arena.width = 3000;
-                    arena.height = 3000;
+                    arena.width = 2000;
+                    arena.height = 2000;
                     arena.left = 0;
                     arena.top = 0;
 
@@ -119,7 +117,7 @@ int main(){
 
                     player.spawn(arena,resolution,tile_size);
 
-                    num_zombies = 700;
+                    num_zombies = 200;
                     for(int z{0}; z < zombie_horde.size();++z){
                         delete zombie_horde[z];
                     }

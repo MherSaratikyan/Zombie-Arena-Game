@@ -22,8 +22,7 @@ protected:
     static constexpr double crawler_speed{20};
     static constexpr double crawler_health{3};
 
-    static constexpr double praetorian_speed{60};
-    static constexpr double praetorian_health{30};
+ 
 
 public:
     bool hit();

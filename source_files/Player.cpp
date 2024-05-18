@@ -1,4 +1,5 @@
 #include "../header_files/Player.hpp"
+#include "../header_files/TextureManager.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -11,7 +12,7 @@ m_current_speed{start_speed}
         throw std::runtime_error("Error: Could not load the player texture");
     }
 
-    m_sprite.setTexture(m_texture);
+    m_sprite = sf::Sprite(TextureManager::get_texture("../resource_files/graphics/player.png"));
     m_sprite.setOrigin(25,25);
 }
 
