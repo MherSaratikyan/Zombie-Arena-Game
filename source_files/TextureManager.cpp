@@ -19,7 +19,7 @@ sf::Texture& TextureManager::get_texture(const std::string& filename){
     }else{
         auto texture = m[filename];
         if(!texture.loadFromFile(filename)){
-            throw std::runtime_error("Unable to load texture \"filename\"");
+            throw std::runtime_error("Unable to load texture from \"filename\"");
         }
         return texture;
     }
