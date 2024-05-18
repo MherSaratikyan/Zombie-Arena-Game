@@ -7,6 +7,8 @@
 
 
 int main(){
+    TextureManager manager;
+
     enum class State {PAUSED, LEVEL_UP, GAME_OVER, PLAYING};
 
     State curr_state = State::GAME_OVER;
@@ -107,8 +109,8 @@ int main(){
                 }
 
                 if(curr_state == State::PLAYING){
-                    arena.width = 500;
-                    arena.height = 500;
+                    arena.width = 3000;
+                    arena.height = 3000;
                     arena.left = 0;
                     arena.top = 0;
 
@@ -117,9 +119,9 @@ int main(){
 
                     player.spawn(arena,resolution,tile_size);
 
-                    num_zombies = 15;
-                    for(Zombie* zombie_ptr: zombie_horde){
-                        delete zombie_ptr;
+                    num_zombies = 700;
+                    for(int z{0}; z < zombie_horde.size();++z){
+                        delete zombie_horde[z];
                     }
 
                     zombie_horde = create_horde(num_zombies,arena);
@@ -153,8 +155,10 @@ int main(){
             main_view.setCenter(player.get_center());
 
             //loop in horde of zombies and update them
-            for(Zombie* zombie : zombie_horde){
-                zombie->update(dt.asSeconds(),player_position);
+            for(int z{0}; z < zombie_horde.size();++z){
+                if(zombie_horde[z]->is_alive()){
+                    zombie_horde[z]->update(dt.asSeconds(),player_position);
+                }
             }
         }
 
@@ -166,8 +170,8 @@ int main(){
 
             window.draw(background,&background_texture);
 
-            for(Zombie* zombie:zombie_horde){
-                window.draw(zombie->get_sprite());
+            for(int z{0};z < zombie_horde.size();++z){
+                window.draw(zombie_horde[z]->get_sprite());
             }
             window.draw(player.get_sprite());
         }
@@ -188,8 +192,8 @@ int main(){
     }
 
 
-    for(Zombie* zombie_ptr : zombie_horde){
-        delete zombie_ptr;
+    for(int z{0};z < zombie_horde.size();++z){
+        delete zombie_horde[z];
     }
 
     return 0;

@@ -10,5 +10,5 @@ private:
     static TextureManager* m_instance;
 public:
     TextureManager();
-    static sf::Texture& get_texture(const std::string& filename);
+    static sf::Texture get_texture(const std::string& filename);
 };

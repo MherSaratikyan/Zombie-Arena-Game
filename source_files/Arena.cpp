@@ -74,22 +74,22 @@ std::vector<Zombie*> create_horde(int num_zombies,sf::IntRect arena){
             case 0:
                 //left
                 x = min_x;
-                y = (min_y + rand() % max_y);
+                y = min_y + rand() % max_y;
                 break;
             case 1:
                 //right
                 x = max_x;
-                y = (min_y + rand() % max_y);
+                y = min_y + rand() % max_y;
                 break;
             case 2:
-                //bottom
+                //top
                 y = min_y;
-                x = (min_x + rand() % max_x);
+                x = min_x + rand() % max_x;
                 break;
             case 3:
-                //left
+                //bottom
                 y = max_y;
-                x = (min_x + rand() % max_x);
+                x = min_x + rand() % max_x;
                 break;
         }
 

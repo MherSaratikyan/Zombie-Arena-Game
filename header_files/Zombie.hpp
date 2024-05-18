@@ -8,21 +8,22 @@ protected:
 
     sf::Vector2f m_position;
     sf::Sprite m_sprite;
+    sf::Texture m_texture;
 
-    bool m_alive;
+    bool m_alive{true};
 
 protected:
-    static const double bloater_speed{40};
-    static const double bloater_health{5};
+    static constexpr double bloater_speed{40};
+    static constexpr double bloater_health{5};
 
-    static const double chaser_speed{80};
-    static const double chaser_health{1};
+    static constexpr double chaser_speed{80};
+    static constexpr double chaser_health{1};
 
-    static const double crawler_speed{20};
-    static const double crawler_health{3};
+    static constexpr double crawler_speed{20};
+    static constexpr double crawler_health{3};
 
-    static const double praetorian_speed{60};
-    static const double praetorian_health{30};
+    static constexpr double praetorian_speed{60};
+    static constexpr double praetorian_health{30};
 
 public:
     bool hit();
