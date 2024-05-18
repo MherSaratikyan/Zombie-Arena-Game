@@ -4,6 +4,7 @@
 #include "../header_files/Player.hpp"
 #include "../header_files/Arena.hpp"
 #include "../header_files/TextureManager.hpp"
+#include "../header_files/Bullet.hpp"
 
 
 int main(){
@@ -43,6 +44,22 @@ int main(){
     int num_zombies_alive;
     std::vector<Zombie*> zombie_horde;
 
+    //Prepare bullets
+    std::vector<Bullet> bullets(100);
+    int curr_bullet{0};
+    int bullet_spare{24};
+    int bullets_in_clip{6};
+    int clip_size{6};
+    double fire_rate{1};
+    sf::Time last_pressed;
+
+    window.setMouseCursorVisible(false);
+    sf::Sprite crosshair_sprite;
+    sf::Texture crosshair_texture = TextureManager::get_texture("../resource_files/graphics/crosshair.png");
+    crosshair_sprite.setTexture(crosshair_texture);
+    crosshair_sprite.setOrigin(25,25);
+
+
     while(window.isOpen()){
         //handling input
         sf::Event event;
@@ -81,7 +98,26 @@ int main(){
                 } else {
                     player.stop_right();
                 }
-            }//end wasd while playing
+
+                //Shooting
+                if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                    if(total_game_time.asMilliseconds() - last_pressed.asMilliseconds() > 1000/fire_rate && bullets_in_clip > 0){
+                        bullets[curr_bullet].shoot(
+                            player.get_center().x, player.get_center().y,
+                            cursor_world_position.x, cursor_world_position.y);
+                        
+                        ++curr_bullet;
+                        if(curr_bullet > 99){
+                            curr_bullet = 0;
+                        }
+
+                        last_pressed = total_game_time;
+                        --bullets_in_clip;
+                    }
+                }
+            }
+
+            
 
             //handle leveling up
             if(curr_state == State::LEVEL_UP){
@@ -107,6 +143,7 @@ int main(){
                 }
 
                 if(curr_state == State::PLAYING){
+
                     arena.width = 2000;
                     arena.height = 2000;
                     arena.left = 0;
@@ -128,6 +165,19 @@ int main(){
                     clock.restart();
                 }
             }
+
+            //Reloading
+            if(event.key.code == sf::Keyboard::R){
+                if(bullet_spare >= clip_size){
+                    bullets_in_clip = clip_size;
+                    bullet_spare -= clip_size;
+                } else if(bullet_spare > 0){
+                    bullets_in_clip = bullet_spare;
+                    bullet_spare = 0;
+                }else{
+
+                }
+            }
         }//end event polling
 
         //handle user quiting
@@ -147,6 +197,8 @@ int main(){
                 sf::Mouse::getPosition(),main_view
             );
 
+            crosshair_sprite.setPosition(cursor_world_position);
+
             player.update(dt_as_seconds,sf::Mouse::getPosition());
 
             sf::Vector2f player_position(player.get_center());
@@ -156,6 +208,12 @@ int main(){
             for(int z{0}; z < zombie_horde.size();++z){
                 if(zombie_horde[z]->is_alive()){
                     zombie_horde[z]->update(dt.asSeconds(),player_position);
+                }
+            }
+
+            for(int b{0}; b < 100; ++b){
+                if(bullets[b].is_in_flight()){
+                    bullets[b].update(dt.asSeconds());
                 }
             }
         }
@@ -171,7 +229,16 @@ int main(){
             for(int z{0};z < zombie_horde.size();++z){
                 window.draw(zombie_horde[z]->get_sprite());
             }
+
+            for(int b{0}; b < 100; ++b){
+                if(bullets[b].is_in_flight()){
+                    window.draw(bullets[b].get_shape());
+                }
+            }
+
+
             window.draw(player.get_sprite());
+            window.draw(crosshair_sprite);
         }
 
         if(curr_state == State::LEVEL_UP){
