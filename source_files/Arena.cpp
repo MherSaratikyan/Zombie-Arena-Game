@@ -1,4 +1,11 @@
 #include "../header_files/Arena.hpp"
+#include "../header_files/Zombie.hpp"
+#include "../header_files/Crawler.hpp"
+#include "../header_files/Chaser.hpp"
+#include "../header_files/Bloater.hpp"
+#include "../header_files/Praetorian.hpp"
+
+#include <vector>
 #include <ctime>
 #include <cstdlib>
 
@@ -45,4 +52,73 @@ int create_bacground(sf::VertexArray& rva, sf::IntRect arena){
     }
 
     return tile_size;
+}
+
+std::vector<Zombie*> create_horde(int num_zombies,sf::IntRect arena){
+    std::vector<Zombie*> horde;
+    horde.reserve(num_zombies);
+
+    int max_y{arena.height - 20};
+    int min_y{arena.top + 20};
+    int max_x{arena.width - 20};
+    int min_x{arena.left + 20};
+
+    for(int i{0};i < num_zombies; ++i){
+        std::srand(std::time(0) * i);
+        int side = std::rand() % 4;
+
+        double x;
+        double y;
+
+        switch(side){
+            case 0:
+                //left
+                x = min_x;
+                y = (min_y + rand() % max_y);
+                break;
+            case 1:
+                //right
+                x = max_x;
+                y = (min_y + rand() % max_y);
+                break;
+            case 2:
+                //bottom
+                y = min_y;
+                x = (min_x + rand() % max_x);
+                break;
+            case 3:
+                //left
+                y = max_y;
+                x = (min_x + rand() % max_x);
+                break;
+        }
+
+        //Bloater, Chaser or Crawler
+        std::srand(std::time(0) * i * 2);
+        int type = rand() % 4;
+
+        switch(type){
+            case 0:
+                //Chaser
+                horde.push_back(new Chaser);
+                break;
+            case 1:
+                //Crawler
+                horde.push_back(new Crawler);
+                break;
+            case 2:
+                //Bloater
+                horde.push_back(new Bloater);
+                break; 
+            case 3:
+                horde.push_back(new Praetorian);
+                break;
+        }
+
+        horde[i]->spawn(x,y,i);
+
+    }
+
+    return horde;
+
 }

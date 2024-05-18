@@ -1,6 +1,10 @@
 #include <SFML/Graphics.hpp>
+#include <vector>
+
 #include "../header_files/Player.hpp"
 #include "../header_files/Arena.hpp"
+#include "../header_files/TextureManager.hpp"
+
 
 int main(){
     enum class State {PAUSED, LEVEL_UP, GAME_OVER, PLAYING};
@@ -32,6 +36,12 @@ int main(){
     sf::VertexArray background;
     sf::Texture background_texture;
     background_texture.loadFromFile("../resource_files/graphics/background_sheet.png");
+
+
+    //Prepare the horde
+    int num_zombies;
+    int num_zombies_alive;
+    std::vector<Zombie*> zombie_horde;
 
     while(window.isOpen()){
         //handling input
@@ -106,6 +116,15 @@ int main(){
                     //int tile_size = 50;
 
                     player.spawn(arena,resolution,tile_size);
+
+                    num_zombies = 15;
+                    for(Zombie* zombie_ptr: zombie_horde){
+                        delete zombie_ptr;
+                    }
+
+                    zombie_horde = create_horde(num_zombies,arena);
+                    num_zombies_alive = num_zombies;
+
                     clock.restart();
                 }
             }
@@ -131,7 +150,12 @@ int main(){
             player.update(dt_as_seconds,sf::Mouse::getPosition());
 
             sf::Vector2f player_position(player.get_center());
+            main_view.setCenter(player.get_center());
 
+            //loop in horde of zombies and update them
+            for(Zombie* zombie : zombie_horde){
+                zombie->update(dt.asSeconds(),player_position);
+            }
         }
 
         //draw the scene
@@ -141,6 +165,10 @@ int main(){
             window.setView(main_view);
 
             window.draw(background,&background_texture);
+
+            for(Zombie* zombie:zombie_horde){
+                window.draw(zombie->get_sprite());
+            }
             window.draw(player.get_sprite());
         }
 
@@ -160,6 +188,9 @@ int main(){
     }
 
 
+    for(Zombie* zombie_ptr : zombie_horde){
+        delete zombie_ptr;
+    }
 
     return 0;
 

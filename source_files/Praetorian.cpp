@@ -5,7 +5,7 @@
 
 void Praetorian::spawn(double x, double y, int seed){
     m_sprite.setTexture(TextureManager::get_texture("../resource_files/graphics/chaser.png"));
-    m_health = bloater_health;
+    m_health = praetorian_health;
     std::srand(std::time(0) + seed);
-    m_speed = bloater_speed + (bloater_speed * (2 - std::rand() % 4)) / 100;
+    m_speed = praetorian_speed + (praetorian_speed * (2 - std::rand() % 4)) / 100;
 }
