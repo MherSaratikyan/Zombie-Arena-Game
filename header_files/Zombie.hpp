@@ -21,8 +21,8 @@ protected:
     static const double crawler_speed{20};
     static const double crawler_health{3};
 
-    static const double praetorian_speed{160};
-    static const double praetorian_health{20};
+    static const double praetorian_speed{60};
+    static const double praetorian_health{30};
 
 public:
     bool hit();
