@@ -1,3 +1,4 @@
+#include <sstream>
 #include <SFML/Graphics.hpp>
 #include <vector>
 
@@ -67,6 +68,115 @@ int main(){
     //variavles for score storing
     int curr_score{0};
     int hi_score{0};
+
+    //Game over/home screen
+    sf::Sprite game_over_sprite;
+    sf::Texture game_over_texture = TextureManager::get_texture("../resource_files/graphics/background.png");
+    game_over_sprite.setTexture(game_over_texture);
+    game_over_sprite.setPosition(0,0);
+
+    //View for HUD
+    sf::View hud_view(sf::FloatRect(0,0,resolution.x,resolution.y));
+
+    //Ammo icon sprite
+    sf::Sprite ammo_icon_sprite;
+    sf::Texture ammo_icon_texture = TextureManager::get_texture("../resource_files/graphics/ammo_icon.png");
+    ammo_icon_sprite.setTexture(ammo_icon_texture);
+    ammo_icon_sprite.setPosition(20,980);
+
+    //Loading the font
+    sf::Font game_font;
+    game_font.loadFromFile("../resource_files/font/zombiecontrol.ttf");
+
+    //Paused
+    sf::Text paused_text;
+    paused_text.setFont(game_font);
+    paused_text.setCharacterSize(155);
+    paused_text.setFillColor(sf::Color::White);
+    paused_text.setPosition(400,400);
+    paused_text.setString("Press Enter \nTo Continue");
+
+    //Game over
+    sf::Text game_over_text;
+    game_over_text.setFont(game_font);
+    game_over_text.setCharacterSize(125);
+    game_over_text.setFillColor(sf::Color::White);
+    game_over_text.setPosition(250,850);
+    game_over_text.setString("PressEnter To Play");
+
+    //Level Up
+    sf::Text level_up_text;
+    level_up_text.setFont(game_font);
+    level_up_text.setCharacterSize(80);
+    level_up_text.setFillColor(sf::Color::White);
+    level_up_text.setPosition(150,250);
+    std::stringstream level_up_string;
+    level_up_string <<
+                    "1 - Increased fire rate" <<
+                    "\n2 - Increased clip size(next reload)" <<
+                    "\n3 - Increased max health" <<
+                    "\n4 - Increased run speed" <<
+                    "\n5 - More and better health pickups" <<
+                    "\6 - More and better ammo pickups";
+    level_up_text.setString(level_up_string.str());
+
+    //Ammo
+    sf::Text ammo_text;
+    ammo_text.setFont(game_font);
+    ammo_text.setCharacterSize(55);
+    ammo_text.setFillColor(sf::Color::White);
+    ammo_text.setPosition(200,980);
+
+    //Score
+    sf::Text score_text;
+    score_text.setFont(game_font);
+    score_text.setCharacterSize(55);
+    score_text.setFillColor(sf::Color::White);
+    score_text.setPosition(20, 0);
+
+    //High Score
+    sf::Text hi_score_text;
+    hi_score_text.setFont(game_font);
+    hi_score_text.setCharacterSize(55);
+    hi_score_text.setFillColor(sf::Color::White);
+    std::stringstream s;
+    s << "Hi score: " << hi_score;
+    hi_score_text.setString(s.str());
+    hi_score_text.setPosition(20, 0);
+
+    //Zombies remaining
+    sf::Text remaining_zombie_text;
+    remaining_zombie_text.setFont(game_font);
+    remaining_zombie_text.setCharacterSize(55);
+    remaining_zombie_text.setFillColor(sf::Color::White);
+    remaining_zombie_text.setPosition(1500, 980);
+    remaining_zombie_text.setString("Zombies: 100");
+
+    //Wave number
+    sf::Text wave_number_text;
+    int wave = 0;
+    wave_number_text.setFont(game_font);
+    wave_number_text.setCharacterSize(55);
+    wave_number_text.setFillColor(sf::Color::White);
+    wave_number_text.setPosition(1250, 980);
+    wave_number_text.setString("Wave: 0");
+
+    //Health bar
+    sf::RectangleShape health_bar;
+    health_bar.setFillColor(sf::Color::Red);
+    health_bar.setPosition(450,980);
+
+
+    //debug HUD
+    sf::Text debug_text;
+    debug_text.setFont(game_font);
+    debug_text.setCharacterSize(25);
+    debug_text.setFillColor(sf::Color::White);
+    debug_text.setPosition(20,220);
+    std::ostringstream ss;
+
+    int frame_since_last_hud_update{0};
+    int fps_measurement_frame_interval{1000};
 
     while(window.isOpen()){
         //handling input
@@ -152,8 +262,8 @@ int main(){
 
                 if(curr_state == State::PLAYING){
 
-                    arena.width = 1000;
-                    arena.height = 1000;
+                    arena.width = 1920;
+                    arena.height = 1080;
                     arena.left = 0;
                     arena.top = 0;
 
@@ -165,7 +275,7 @@ int main(){
                     health_pickup.set_arena(arena);
                     ammo_pickup.set_arena(arena);
 
-                    num_zombies = 15;
+                    num_zombies = 100;
                     for(int z{0}; z < zombie_horde.size();++z){
                         delete zombie_horde[z];
                     }
@@ -278,6 +388,42 @@ int main(){
                 bullet_spare += ammo_pickup.got_it();
             }
 
+            //sizing up health bar
+            health_bar.setSize(sf::Vector2f(player.get_health() * 3, 50));
+
+            ++frame_since_last_hud_update;
+
+            if(frame_since_last_hud_update > fps_measurement_frame_interval){
+                std::stringstream ss_ammo;
+                std::stringstream ss_score;
+                std::stringstream ss_hi_score;
+                std::stringstream ss_wave;
+                std::stringstream ss_zombies_alive;
+
+                //Update ammo text
+                ss_ammo << bullets_in_clip <<'/'<<bullet_spare;
+                ammo_text.setString(ss_ammo.str());
+
+                //Update score text
+                ss_score << "Score: "<<curr_score;
+                score_text.setString(ss_score.str());
+
+                //Update High score text
+                ss_hi_score << "High Score: "<<hi_score;
+                hi_score_text.setString(ss_hi_score.str());
+
+                //Update the wave
+                ss_wave << "Wave: "<<wave;
+                wave_number_text.setString(ss_wave.str());
+
+                //Update remaining zombies text
+                ss_zombies_alive << "Zombies: "<<num_zombies_alive;
+                remaining_zombie_text.setString(ss_zombies_alive.str());
+
+                frame_since_last_hud_update = 0;
+
+            }
+
         }
 
         
@@ -312,18 +458,33 @@ int main(){
             }
 
             window.draw(crosshair_sprite);
+
+            //switch to hud view
+            window.setView(hud_view);
+
+            window.draw(ammo_icon_sprite);
+            window.draw(ammo_text);
+            window.draw(score_text);
+            window.draw(hi_score_text);
+            window.draw(health_bar);
+            window.draw(wave_number_text);
+            window.draw(remaining_zombie_text);
         }
 
         if(curr_state == State::LEVEL_UP){
-
+            window.draw(game_over_sprite);
+            window.draw(level_up_text);
         }
 
         if(curr_state == State::PAUSED){
-
+            window.draw(paused_text);
         }
 
         if(curr_state == State::GAME_OVER){
-
+            window.draw(game_over_sprite);
+            window.draw(game_over_text);
+            window.draw(score_text);
+            window.draw(hi_score_text);
         }
 
         window.display();
