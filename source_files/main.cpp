@@ -64,6 +64,9 @@ int main(){
     Pickup health_pickup(1);
     Pickup ammo_pickup(2);
 
+    //variavles for score storing
+    int curr_score{0};
+    int hi_score{0};
 
     while(window.isOpen()){
         //handling input
@@ -149,8 +152,8 @@ int main(){
 
                 if(curr_state == State::PLAYING){
 
-                    arena.width = 2000;
-                    arena.height = 2000;
+                    arena.width = 1000;
+                    arena.height = 1000;
                     arena.left = 0;
                     arena.top = 0;
 
@@ -162,7 +165,7 @@ int main(){
                     health_pickup.set_arena(arena);
                     ammo_pickup.set_arena(arena);
 
-                    num_zombies = 200;
+                    num_zombies = 15;
                     for(int z{0}; z < zombie_horde.size();++z){
                         delete zombie_horde[z];
                     }
@@ -227,6 +230,54 @@ int main(){
 
             health_pickup.update(dt.asSeconds());
             ammo_pickup.update(dt.asSeconds());
+
+            //Collision detection
+            //Zombie and bullet collision detection and processing
+            for(int i{0}; i < 100; ++i){
+                for(int j{0}; j < num_zombies; ++j){
+                    if(bullets[i].is_in_flight() && zombie_horde[j]->is_alive()){
+                        if(bullets[i].get_position().intersects(zombie_horde[j]->get_position())){
+                            bullets[i].stop();
+                            if(zombie_horde[j]->hit()){
+                                curr_score += 10;
+                                if(curr_score > hi_score){
+                                    hi_score = curr_score;
+                                }
+
+                                --num_zombies_alive;
+
+                                if(num_zombies_alive == 0){
+                                    curr_state = State::LEVEL_UP;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Zombie and player collision detection and processing
+            for(int i{0}; i < num_zombies;++i){
+                if((player.get_position().intersects(zombie_horde[i]->get_position())) && zombie_horde[i]->is_alive()){
+                    if(player.hit(total_game_time)){
+
+                    }
+
+                    if(player.get_health() <= 0){
+                        curr_state = State::GAME_OVER;
+                    }
+                }
+            }
+
+            //Player and health pickup collision detection and processing
+            if((player.get_position().intersects(health_pickup.get_position())) && health_pickup.is_spawned()){
+                player.increase_health_level(health_pickup.got_it());
+            }
+
+            //Player and ammo pickup collision detection and processing
+            if((player.get_position().intersects(ammo_pickup.get_position())) && ammo_pickup.is_spawned()){
+                bullet_spare += ammo_pickup.got_it();
+            }
+
         }
 
         
@@ -259,7 +310,7 @@ int main(){
             if(ammo_pickup.is_spawned()){
                 window.draw(ammo_pickup.get_sprite());
             }
-            
+
             window.draw(crosshair_sprite);
         }
 

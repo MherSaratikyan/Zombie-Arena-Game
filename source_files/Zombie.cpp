@@ -6,7 +6,7 @@
 bool Zombie::hit(){
     --m_health;
 
-    if(m_health < 0){
+    if(m_health == 0){
         m_alive = false;
         m_sprite.setTexture(TextureManager::get_texture("../resource_files/graphics/blood.png"));
         return true;
