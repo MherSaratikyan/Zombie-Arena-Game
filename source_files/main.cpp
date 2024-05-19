@@ -154,7 +154,7 @@ int main(){
     std::stringstream s;
     s << "Hi score: " << hi_score;
     hi_score_text.setString(s.str());
-    hi_score_text.setPosition(1600, 0);
+    hi_score_text.setPosition(1400, 0);
 
     //Zombies remaining
     sf::Text remaining_zombie_text;
