@@ -1,5 +1,7 @@
 #include <sstream>
+#include <fstream>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <vector>
 
 #include "../header_files/Player.hpp"
@@ -102,7 +104,7 @@ int main(){
     game_over_text.setCharacterSize(125);
     game_over_text.setFillColor(sf::Color::White);
     game_over_text.setPosition(250,850);
-    game_over_text.setString("PressEnter To Play");
+    game_over_text.setString("Press Enter To Play");
 
     //Level Up
     sf::Text level_up_text;
@@ -117,7 +119,7 @@ int main(){
                     "\n3 - Increased max health" <<
                     "\n4 - Increased run speed" <<
                     "\n5 - More and better health pickups" <<
-                    "\6 - More and better ammo pickups";
+                    "\n6 - More and better ammo pickups";
     level_up_text.setString(level_up_string.str());
 
     //Ammo
@@ -134,6 +136,16 @@ int main(){
     score_text.setFillColor(sf::Color::White);
     score_text.setPosition(20, 0);
 
+    std::ifstream read_from_file("../resource_files/gamedata/scores.txt");
+    if(!read_from_file.is_open()){
+        hi_score = 0;
+    }else{
+        read_from_file >> hi_score;
+        read_from_file.close();
+    }
+
+    
+
     //High Score
     sf::Text hi_score_text;
     hi_score_text.setFont(game_font);
@@ -142,7 +154,7 @@ int main(){
     std::stringstream s;
     s << "Hi score: " << hi_score;
     hi_score_text.setString(s.str());
-    hi_score_text.setPosition(20, 0);
+    hi_score_text.setPosition(1600, 0);
 
     //Zombies remaining
     sf::Text remaining_zombie_text;
@@ -178,6 +190,48 @@ int main(){
     int frame_since_last_hud_update{0};
     int fps_measurement_frame_interval{1000};
 
+    //Prepare the hit sound
+    sf::SoundBuffer hit_buffer;
+    hit_buffer.loadFromFile("../resource_files/sound/hit.wav");
+    sf::Sound hit_sound;
+    hit_sound.setBuffer(hit_buffer);
+
+    // Prepare the splat sound
+    sf::SoundBuffer splat_buffer;
+    splat_buffer.loadFromFile("../resource_files/sound/splat.wav");
+    sf::Sound splat_sound;
+    splat_sound.setBuffer(splat_buffer);
+
+    // Prepare the shoot sound
+    sf::SoundBuffer shoot_buffer;
+    shoot_buffer.loadFromFile("../resource_files/sound/shoot.wav");
+    sf::Sound shoot_sound;
+    shoot_sound.setBuffer(shoot_buffer);
+
+    // Prepare the reload sound
+    sf::SoundBuffer reload_buffer;
+    reload_buffer.loadFromFile("../resource_files/sound/reload.wav");
+    sf::Sound reload_sound;
+    reload_sound.setBuffer(reload_buffer);
+
+    // Prepare the failed sound
+    sf::SoundBuffer reload_failed_buffer;
+    reload_failed_buffer.loadFromFile("../resource_files/sound/reload_failed.wav");
+    sf::Sound reload_failed_sound;
+    reload_failed_sound.setBuffer(reload_failed_buffer);
+
+    // Prepare the powerup sound
+    sf::SoundBuffer powerup_buffer;
+    powerup_buffer.loadFromFile("../resource_files/sound/powerup.wav");
+    sf::Sound powerup_sound;
+    powerup_sound.setBuffer(powerup_buffer);
+
+    // Prepare the pickup sound
+    sf::SoundBuffer pickup_buffer;
+    pickup_buffer.loadFromFile("../resource_files/sound/pickup.wav");
+    sf::Sound pickup_sound;
+    pickup_sound.setBuffer(pickup_buffer);
+
     while(window.isOpen()){
         //handling input
         sf::Event event;
@@ -191,6 +245,19 @@ int main(){
                 clock.restart();
             } else if(event.key.code == sf::Keyboard::Return && curr_state == State::GAME_OVER){
                 curr_state = State::LEVEL_UP;
+
+                wave = 0;
+                curr_score = 0;
+
+                curr_bullet = 0;
+                bullet_spare = 24;
+
+                bullets_in_clip = 6;
+                clip_size = 6;
+
+                fire_rate = 1;
+
+                player.reset_stats();
             }else if(curr_state == State::PLAYING){
                 //handle player pressing w/a/s/d  while playing
                 if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
@@ -230,6 +297,8 @@ int main(){
                         }
 
                         last_pressed = total_game_time;
+
+                        shoot_sound.play();
                         --bullets_in_clip;
                     }
                 }
@@ -241,29 +310,44 @@ int main(){
             if(curr_state == State::LEVEL_UP){
                 switch(event.key.code){
                     case sf::Keyboard::Num1:
+                        //increase fire rate
+                        ++fire_rate;
                         curr_state = State::PLAYING;
                         break;
                     case sf::Keyboard::Num2:
+                        //increase clip size
+                        clip_size += clip_size;
                         curr_state = State::PLAYING;
                         break;
                     case sf::Keyboard::Num3:
+                        //increase health
+                        player.update_health();
                         curr_state = State::PLAYING;
                         break;
                     case sf::Keyboard::Num4:
+                        //increase speed
+                        player.update_speed();
                         curr_state = State::PLAYING;
                         break;
                     case sf::Keyboard::Num5:
+                        //upgrade health pickup
+                        health_pickup.upgrade();
                         curr_state = State::PLAYING;
                         break;
                     case sf::Keyboard::Num6:
+                        //upgrade ammo pickup
+                        ammo_pickup.upgrade();
                         curr_state = State::PLAYING;
                         break;
                 }
 
                 if(curr_state == State::PLAYING){
+                    
+                    //increase wave number
+                    ++wave;
 
-                    arena.width = 1920;
-                    arena.height = 1080;
+                    arena.width = 1500;
+                    arena.height = 1500;
                     arena.left = 0;
                     arena.top = 0;
 
@@ -275,10 +359,12 @@ int main(){
                     health_pickup.set_arena(arena);
                     ammo_pickup.set_arena(arena);
 
-                    num_zombies = 100;
+                    num_zombies = 10 * wave;
                     for(int z{0}; z < zombie_horde.size();++z){
                         delete zombie_horde[z];
                     }
+
+                    powerup_sound.play();
 
                     zombie_horde = create_horde(num_zombies,arena);
                     num_zombies_alive = num_zombies;
@@ -289,14 +375,17 @@ int main(){
 
             //Reloading
             if(event.key.code == sf::Keyboard::R){
-                if(bullet_spare >= clip_size){
-                    bullets_in_clip = clip_size;
-                    bullet_spare -= clip_size;
+                int need_to_fill_clip = clip_size - bullets_in_clip;
+                if(bullet_spare >= need_to_fill_clip){
+                    bullets_in_clip += need_to_fill_clip;
+                    bullet_spare -= need_to_fill_clip;
+                    reload_sound.play();
                 } else if(bullet_spare > 0){
-                    bullets_in_clip = bullet_spare;
+                    bullets_in_clip += bullet_spare;
                     bullet_spare = 0;
+                    reload_sound.play();
                 }else{
-
+                    reload_failed_sound.play();
                 }
             }
         }//end event polling
@@ -359,6 +448,8 @@ int main(){
                                 if(num_zombies_alive == 0){
                                     curr_state = State::LEVEL_UP;
                                 }
+
+                                splat_sound.play();
                             }
                         }
                     }
@@ -369,11 +460,14 @@ int main(){
             for(int i{0}; i < num_zombies;++i){
                 if((player.get_position().intersects(zombie_horde[i]->get_position())) && zombie_horde[i]->is_alive()){
                     if(player.hit(total_game_time)){
-
+                        hit_sound.play();
                     }
 
                     if(player.get_health() <= 0){
                         curr_state = State::GAME_OVER;
+                        std::ofstream write_in_file("../resource_files/gamedata/scores.txt");
+                        write_in_file << hi_score;
+                        write_in_file.close();
                     }
                 }
             }
@@ -381,11 +475,13 @@ int main(){
             //Player and health pickup collision detection and processing
             if((player.get_position().intersects(health_pickup.get_position())) && health_pickup.is_spawned()){
                 player.increase_health_level(health_pickup.got_it());
+                pickup_sound.play();
             }
 
             //Player and ammo pickup collision detection and processing
             if((player.get_position().intersects(ammo_pickup.get_position())) && ammo_pickup.is_spawned()){
                 bullet_spare += ammo_pickup.got_it();
+                reload_sound.play();
             }
 
             //sizing up health bar
